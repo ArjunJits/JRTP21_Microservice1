@@ -1,0 +1,27 @@
+#Predfined properties
+spring:
+  datasource:
+    driverClassName: org.h2.Driver
+    password: arjun
+    url: jdbc:h2:mem:testdb
+    username: arjun
+  h2:
+    console:
+      enabled: true
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+  application:
+    name: PLAN API 
+
+# user defined messages 
+plan-api:
+  messages:
+    planSaved: Plan Saved Successfully
+    planSaveFail: Plan Saved Failed 
+    planUpdated: Plan updated Success
+    planUpdateFail: Plan updated failed
+    planDelete: Plan Delete Successfully
+    planDeleteFail: Plan Delete Failed
+    planStatusChanged: Plan Status success
+    planStatusFail: Plan Status Failed
+    

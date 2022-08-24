@@ -3,9 +3,10 @@ package com.jrtp.controller;
 import java.util.List;
 import java.util.Map;
 
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -14,38 +15,52 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-//import org.springframework.web.bind.annotation.RequestMapping;
+
 import org.springframework.web.bind.annotation.RestController;
 
+import com.jrtp.Props.ApplicationProps;
+import com.jrtp.constants.AppConstants;
 import com.jrtp.entity.PlanMaster;
-import com.jrtp.exception.PlanNotFoundException;
 import com.jrtp.service.PlanService;
 
 
 @RestController
 public class PlanController {
 	private static final Logger log = LoggerFactory.getLogger(PlanController.class);
-	@Autowired
+	
 	private PlanService planService;
-
+	
+	private Map<String, String> messages;
+	
+	public PlanController(PlanService planService,ApplicationProps applicationProps) {
+		this.planService = planService;
+	
+		this.messages=applicationProps.getMessages();
+		log.info("Application Yml properties:{}",this.messages);
+	}
+	 
+	 
 	@GetMapping("/categories")
 	public ResponseEntity<Map<Integer, String>> getPlanCategory() {
 		
 		Map<Integer, String> plancategory = planService.getPlancategory();
-		log.info("categories called all plans are {}"+plancategory);
+		int size = plancategory.size();
+		log.info("categories called all plans are :{} and total count :{}",plancategory,size);
 		return new ResponseEntity<>(plancategory, HttpStatus.OK);
 	}
 
 //response entity is used to send data to client
 	@PostMapping("/plan")
 	public ResponseEntity<String> savePlan(@RequestBody PlanMaster plan) {
-		String resmsg = "";
+		String resmsg = AppConstants.EMPTY_STR;
+		
 		boolean savePlan = planService.savePlan(plan);
 		if (savePlan) {
-			resmsg = "plan saved";
+			
+			resmsg = messages.get(AppConstants.PLAN_SAVED);
 			log.info("Plan saved successfully "+plan.toString());
 		} else {
-			resmsg = "plan not saved";
+			resmsg = messages.get(AppConstants.PLAN_SAVE_FAIL);
 		}
 		return new ResponseEntity<>(resmsg, HttpStatus.CREATED);
 	}
@@ -76,31 +91,29 @@ public class PlanController {
 
 	@DeleteMapping("/plan/{planId}")
 	public ResponseEntity<String> deletePlanId(@PathVariable Integer planId) {
-		String msg = "";
+		String msg = AppConstants.EMPTY_STR;
 		boolean deletePlanById = planService.deletePlanById(planId);
 		if (deletePlanById) {
 			log.info("Plan deleted " +planId);
-			msg = "plan deleted";
+			msg = messages.get(AppConstants.PLAN_DELETE);
 			
 		} else {
 			log.info("Plan not deleted " +planId);
-			msg = "plan not deleted";
-			throw new PlanNotFoundException();
+			msg = messages.get(AppConstants.PLAN_DELETE_FAIL);
 		}
 		return new ResponseEntity<>(msg, HttpStatus.OK);
 	}
 
 	@PutMapping("/plan")
 	public ResponseEntity<String> updatePlan(@RequestBody PlanMaster plan) {
-		String msg = " ";
+		String msg = AppConstants.EMPTY_STR;
 		boolean updatePlan = planService.updatePlan(plan);
 		if (updatePlan) {
 			log.info("Plan updated "+plan.toString());
-			msg = "Plan Updated";
+			msg = messages.get(AppConstants.PLAN_UPDATED);
 		} else {
 			log.info("Plan not updated "+plan.toString());
-			msg = "Plan not delted";
-			throw new PlanNotFoundException();
+			msg = messages.get(AppConstants.PLAN_UPDATE_FAIL);
 		}
 		return new ResponseEntity<>(msg, HttpStatus.OK);
 
@@ -108,12 +121,13 @@ public class PlanController {
 
 	@PutMapping("/status-chnage /{planId}/{status}")
 	public ResponseEntity<String> statusChange(@PathVariable Integer planId, @PathVariable String status) {
-		String msg = "";
+		// string literals not allowed instead use the constants.
+		String msg = AppConstants.EMPTY_STR;
 		boolean planStausChange = planService.planStausChange(planId, status);
 		if (planStausChange) {
-			msg = "Switch changed";
+			msg = messages.get(AppConstants.PLAN_STATUS_CHANGED);
 		} else {
-			msg = "Switch not changed";
+			msg = messages.get(AppConstants.PLAN_STATUS_FAIL);
 		}
 		return new ResponseEntity<>(msg, HttpStatus.OK);
 	}
