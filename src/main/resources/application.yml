@@ -13,6 +13,7 @@ spring:
   application:
     name: PLAN API 
 
+
 # user defined messages 
 plan-api:
   messages:

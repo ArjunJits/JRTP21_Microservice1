@@ -3,12 +3,14 @@ package com.jrtp.controller;
 import java.util.List;
 import java.util.Map;
 
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+//import org.springframework.scheduling.annotation.Async;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,42 +25,41 @@ import com.jrtp.constants.AppConstants;
 import com.jrtp.entity.PlanMaster;
 import com.jrtp.service.PlanService;
 
-
 @RestController
 public class PlanController {
 	private static final Logger log = LoggerFactory.getLogger(PlanController.class);
-	
+
 	private PlanService planService;
-	
+
 	private Map<String, String> messages;
-	
-	public PlanController(PlanService planService,ApplicationProps applicationProps) {
+
+	public PlanController(PlanService planService, ApplicationProps applicationProps) {
 		this.planService = planService;
-	
-		this.messages=applicationProps.getMessages();
-		log.info("Application Yml properties:{}",this.messages);
+
+		this.messages = applicationProps.getMessages();
+		log.info("Application Yml properties:{}", this.messages);
 	}
-	 
-	 
+
 	@GetMapping("/categories")
 	public ResponseEntity<Map<Integer, String>> getPlanCategory() {
-		
+
 		Map<Integer, String> plancategory = planService.getPlancategory();
 		int size = plancategory.size();
-		log.info("categories called all plans are :{} and total count :{}",plancategory,size);
+		log.info("categories called all plans are :{} and total count :{}", plancategory, size);
 		return new ResponseEntity<>(plancategory, HttpStatus.OK);
 	}
 
 //response entity is used to send data to client
 	@PostMapping("/plan")
+	//@Async
 	public ResponseEntity<String> savePlan(@RequestBody PlanMaster plan) {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		log.info("Authenticated user {} and {}", authentication.getPrincipal(),authentication.getCredentials());
 		String resmsg = AppConstants.EMPTY_STR;
-		
 		boolean savePlan = planService.savePlan(plan);
 		if (savePlan) {
-			
 			resmsg = messages.get(AppConstants.PLAN_SAVED);
-			log.info("Plan saved successfully "+plan.toString());
+			log.info("Plan saved successfully " + plan.toString());
 		} else {
 			resmsg = messages.get(AppConstants.PLAN_SAVE_FAIL);
 		}
@@ -68,8 +69,7 @@ public class PlanController {
 	@GetMapping("/plans")
 	public ResponseEntity<List<PlanMaster>> plans() {
 		List<PlanMaster> allPlans = planService.getAllPlans();
-		if (allPlans.isEmpty())
-		{
+		if (allPlans.isEmpty()) {
 			log.info("No plans found");
 		}
 
@@ -79,12 +79,10 @@ public class PlanController {
 	@GetMapping("/plan/{planId}")
 	public ResponseEntity<PlanMaster> editPlanId(@PathVariable Integer planId) {
 		PlanMaster planById = planService.getPlanById(planId);
-		if(planById.getPlanId()!= null)
-		{
-			log.info("Plan found "+planId);
-		}else
-		{
-			log.info("Plan not found "+planId);
+		if (planById.getPlanId() != null) {
+			log.info("Plan found " + planId);
+		} else {
+			log.info("Plan not found " + planId);
 		}
 		return new ResponseEntity<>(planById, HttpStatus.OK);
 	}
@@ -94,11 +92,11 @@ public class PlanController {
 		String msg = AppConstants.EMPTY_STR;
 		boolean deletePlanById = planService.deletePlanById(planId);
 		if (deletePlanById) {
-			log.info("Plan deleted " +planId);
+			log.info("Plan deleted " + planId);
 			msg = messages.get(AppConstants.PLAN_DELETE);
-			
+
 		} else {
-			log.info("Plan not deleted " +planId);
+			log.info("Plan not deleted " + planId);
 			msg = messages.get(AppConstants.PLAN_DELETE_FAIL);
 		}
 		return new ResponseEntity<>(msg, HttpStatus.OK);
@@ -109,10 +107,10 @@ public class PlanController {
 		String msg = AppConstants.EMPTY_STR;
 		boolean updatePlan = planService.updatePlan(plan);
 		if (updatePlan) {
-			log.info("Plan updated "+plan.toString());
+			log.info("Plan updated " + plan.toString());
 			msg = messages.get(AppConstants.PLAN_UPDATED);
 		} else {
-			log.info("Plan not updated "+plan.toString());
+			log.info("Plan not updated " + plan.toString());
 			msg = messages.get(AppConstants.PLAN_UPDATE_FAIL);
 		}
 		return new ResponseEntity<>(msg, HttpStatus.OK);
